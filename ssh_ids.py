@@ -61,7 +61,7 @@ def parse_command_entry(entry):
     match = re.search(pattern, entry)
     if match:
         time_stamp = match.group('timestamp')
-        user = match.group('user')  # Captures the user dynamically
+        user = match.group('user')
         pwd = match.group('pwd')
         run_as_user = match.group('run_as_user')
         command = match.group('command')
@@ -71,10 +71,8 @@ def parse_command_entry(entry):
 
 
 def format_timestamp(time_stamp):
-    # Parse the timestamp and convert it to a more readable format
     est = pytz.timezone('America/New_York')
     dt = datetime.strptime(time_stamp, "%Y-%m-%dT%H:%M:%S.%f%z")
-    # Convert the timestamp to Eastern Standard Time (EST)
     est_dt = dt.astimezone(est)
     return est_dt.strftime('%Y-%m-%d %H:%M:%S EST')
 
@@ -93,7 +91,7 @@ def blacklist(ip, current_time):
                 timestamp_str = re.search(r'^(\S+)', line).group(1)  # Extract timestamp string
                 timestamp = time.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%f%z")
                 timestamp_epoch = time.mktime(timestamp)
-                if current_time - timestamp_epoch <= 60:  # Check if the entry occurred within the last 1 minute
+                if current_time - timestamp_epoch <= 60:
                     count += 1
     if count >= attempts_allowed:
         if ip not in subprocess.check_output(["iptables", "-L", "INPUT", "-n"]).decode():
@@ -101,13 +99,13 @@ def blacklist(ip, current_time):
             print(f"Banning {ip} for 1 hour after {count} failed login attempts")
             subprocess.run(["iptables", "-A", "INPUT", "-s", ip, "-j", "DROP", "-m", "comment", "--comment", f"expire_at_{expire_time}"])
             notification(ip)
-            log_blocked_ip(ip)
+            log_blocked_ip(ip, expire_time)
 
 
-def log_blocked_ip(ip):
+def log_blocked_ip(ip, expire_time):
     """Log the blocked IP address to a file."""
     with open(blocked_ips_file, "a") as file:
-        file.write(f"{ip}\n")
+        file.write(f"{ip} expires at {expire_time}\n")
 
 
 def list_blocked_ips():
@@ -125,16 +123,24 @@ def list_blocked_ips():
 
 
 def unblock_ip(ip_to_unblock):
+    found = False
     try:
-        with open(blocked_ips_file, "r") as file:
+        with open("blocked_ips.log", "r") as file:
             blocked_ips = file.readlines()
-        with open(blocked_ips_file, "w") as file:
-            for ip in blocked_ips:
-                if ip.strip() != ip_to_unblock:
-                    file.write(ip)
-        # Remove IP from iptables if it exists
-        subprocess.run(["iptables", "-D", "INPUT", "-s", ip_to_unblock, "-j", "DROP"])
-        print(f"IP address {ip_to_unblock} unblocked successfully.")
+        with open("blocked_ips.log", "w") as file:
+            for line in blocked_ips:
+                ip_details = line.strip().split()
+                ip = ip_details[0]
+                expire_time = ip_details[3]
+                if ip != ip_to_unblock:
+                    file.write(line)
+                else:
+                    found = True
+                    comment = f"expire_at_{expire_time}"
+                    subprocess.run(["iptables", "-D", "INPUT", "-s", ip, "-j", "DROP", "-m", "comment", "--comment", comment])
+                    print(f"IP address {ip} unblocked successfully.")
+        if not found:
+            print(f"No matching entry found for IP {ip_to_unblock}.")
     except FileNotFoundError:
         print("Blocked IPs file not found.")
 
