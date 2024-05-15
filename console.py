@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from ssh_ids import list_blocked_ips, unblock_ip, start_ids, stop_ids
-from location import lookup_ips_from_file
 from colorama import Fore, init
 import time
 import sys
@@ -35,8 +34,7 @@ def display_menu():
     print(Fore.MAGENTA + "[+]1. Start IDS")
     print(Fore.MAGENTA + "[+]2. Unblock IP")
     print(Fore.MAGENTA + "[+]3. List blocked IPs")
-    print(Fore.MAGENTA + "[+]4. Look for location")
-    print(Fore.MAGENTA + "[+]5. Exit")
+    print(Fore.MAGENTA + "[+]4. Exit")
 
 def start_interactive_console():
     animated_welcome()
@@ -53,19 +51,12 @@ def start_interactive_console():
             print(Fore.GREEN + "Listing blocked IPs...")
             list_blocked_ips()
         elif choice == "4":
-            print(Fore.GREEN + "Looking for location...")
-            ip_details = lookup_ips_from_file()
-            if ip_details:
-                for ip, details in ip_details.items():
-                    print(Fore.CYAN + f"Details for {ip}: {details}")
-            else:
-                print(Fore.RED + "No IP details found or file is empty.")
-        elif choice == "5":
             print(Fore.GREEN + "Exiting interactive console.")
             stop_ids()
             break
         else:
-            print(Fore.RED + "Invalid choice. Please enter a valid option.")
+            print(Fore.RED + " ")
+        time.sleep(2)
 
 if __name__ == "__main__":
     start_interactive_console()
