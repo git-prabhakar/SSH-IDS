@@ -17,7 +17,7 @@ To install SSH-IDS, follow these steps:
 1. **Clone the Repository**:
 
     ```bash
-    git clone https://github.com/yourusername/SSH-IDS
+    git clone https://github.com/git-prabhakar/SSH-IDS
     cd SSH-IDS
     ```
 
@@ -62,7 +62,7 @@ Before running the IDS, you need to perform some pre-configuration steps:
     - Add the following line at the end of the file to run `temp.sh` every 30 minutes:
 
       ```text
-      */30 * * * * /home/kali/Project/temp.sh
+      */30 * * * * /path/to/temp.sh
       ```
 
     This tells Cron to run `temp.sh` every 30 minutes to check for IP addresses that need to be unblocked.
@@ -86,5 +86,10 @@ Before running the IDS, you need to perform some pre-configuration steps:
 To run the interactive console for SSH-IDS, use the following command (make sure you are running as root):
 
 ```bash
-sudo python console.py
-
+sudo python3 console.py
+```
+Or run these two commands:
+```bash
+sudo su
+python3 console.py
+```
