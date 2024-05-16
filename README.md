@@ -24,7 +24,7 @@ To install SSH-IDS, follow these steps:
 2. **Install the Dependencies**:
 
     ```bash
-    python setup.py install
+    sudo python setup.py install
     ```
 
 ## Pre-Configuration
