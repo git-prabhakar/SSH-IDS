@@ -67,6 +67,20 @@ Before running the IDS, you need to perform some pre-configuration steps:
 
     This tells Cron to run `temp.sh` every 30 minutes to check for IP addresses that need to be unblocked.
 
+3. **Add Your Email Configuration**:
+
+    - Populate the file with your email and SMTP server details. You can modify the SMTP server and port as needed. Below is an example configuration (Demo file is there):
+
+    ```ini
+    [email]
+    sender_email = your_email@example.com
+    receiver_email = admin@example.com
+    smtp_server = smtp.example.com
+    smtp_port = 465
+    smtp_user = your_email@example.com
+    smtp_password = your_password
+    ```
+
 ## Running the IDS
 
 To run the interactive console for SSH-IDS, use the following command (make sure you are running as root):
