@@ -3,7 +3,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from location import get_ip_details
 import configparser
-
+import threading
 def load_config():
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -17,6 +17,7 @@ def load_config():
 
 def notification(ip_address):
     config = load_config()
+    server = None
 
     SMTP_SERVER = config['smtp_server']
     SMTP_PORT = int(config['smtp_port'])
@@ -37,18 +38,18 @@ def notification(ip_address):
     msg['Subject'] = subject
     msg.attach(MIMEText(body, 'plain'))
 
-    server = None
     try:
         server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
         server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
         server.sendmail(EMAIL_ADDRESS, RECIPIENT_EMAIL, msg.as_string())
-        print("Email notification sent successfully")
+        print("Email notification sent successfully, press enter")
     except Exception as e:
-        print("Failed to send email notification:", e)
+        print(f"Failed to send email notification: {e}")
     finally:
         if server:
             server.quit()
 
-if __name__ == "__main__":
-    # Example IP address for testing
-    notification('100.70.254.139')
+def send_notification(ip_address):
+    thread = threading.Thread(target=notification, args=(ip_address,))
+    thread.daemon = True
+    thread.start()
