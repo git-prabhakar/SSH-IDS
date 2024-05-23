@@ -3,7 +3,7 @@
 import subprocess
 import re
 import time
-from email_notify import notification
+from email_notify import send_notification
 import threading
 from datetime import datetime
 import pytz
@@ -14,6 +14,8 @@ attempts_allowed = 2
 ssh_log = "/var/log/auth.log"
 blocked_ips_file = "blocked_ips.log"
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+ids_running = False
 
 
 def check_root():
@@ -96,9 +98,9 @@ def blacklist(ip, current_time):
     if count >= attempts_allowed:
         if ip not in subprocess.check_output(["iptables", "-L", "INPUT", "-n"]).decode():
             expire_time = current_time + 3600  # Expires after 3600 seconds (1 hour)
-            print(f"Banning {ip} for 1 hour after {count} failed login attempts")
+            print(f"\nBanning {ip} for 1 hour after {count} failed login attempts")
             subprocess.run(["iptables", "-A", "INPUT", "-s", ip, "-j", "DROP", "-m", "comment", "--comment", f"expire_at_{expire_time}"])
-            notification(ip)
+            send_notification(ip)
             log_blocked_ip(ip, expire_time)
 
 
@@ -145,21 +147,33 @@ def unblock_ip(ip_to_unblock):
         print("Blocked IPs file not found.")
 
 
+def start_ids():
+    global ids_running
+    check_root()
+    if not ids_running:
+        ids_running = True
+        ids_thread = threading.Thread(target=run_ids)
+        ids_thread.start()
+        print("IDS has been started.")
+    else:
+        print("IDS is already running.")
+
+
+def stop_ids():
+    global ids_running
+    if ids_running:
+        ids_running = False
+        print("IDS has been stopped.")
+    else:
+        print("IDS is not running.")
+
+
+def is_ids_running():
+    return ids_running
+
+
 def run_ids():
     global ids_running
     while ids_running:
         parse_ssh_log()
         time.sleep(10)
-
-
-def start_ids():
-    global ids_running
-    check_root()
-    ids_running = True
-    ids_thread = threading.Thread(target=run_ids)
-    ids_thread.start()
-
-
-def stop_ids():
-    global ids_running
-    ids_running = False
