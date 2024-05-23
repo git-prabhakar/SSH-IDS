@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from ssh_ids import list_blocked_ips, unblock_ip, start_ids, stop_ids
+from ssh_ids import list_blocked_ips, unblock_ip, start_ids, stop_ids, is_ids_running
 from colorama import Fore, init
 import time
 import sys
@@ -31,7 +31,8 @@ def animated_welcome():
 
 def display_menu():
     print(Fore.CYAN + "Options:")
-    print(Fore.MAGENTA + "[+]1. Start IDS")
+    if not is_ids_running():
+        print(Fore.MAGENTA + "[+]1. Start IDS")
     print(Fore.MAGENTA + "[+]2. Unblock IP")
     print(Fore.MAGENTA + "[+]3. List blocked IPs")
     print(Fore.MAGENTA + "[+]4. Exit")
@@ -42,8 +43,11 @@ def start_interactive_console():
         display_menu()
         choice = input(Fore.CYAN + "Enter your choice: ")
         if choice == "1":
-            print(Fore.GREEN + "IDS Started")
-            start_ids()
+            if not is_ids_running():
+                print(Fore.GREEN + "Starting IDS...")
+                start_ids()
+            else:
+                print(Fore.RED + "IDS is already running.")
         elif choice == "2":
             ip_to_unblock = input(Fore.YELLOW + "Enter the IP address to unblock: ")
             unblock_ip(ip_to_unblock)
